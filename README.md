@@ -1,6 +1,6 @@
 # Kindle to Anki Automation
 
-Repositório referente a uma aplicação em Python responsável por **gerar cards do Anki a partir de palavras**.
+Repositório referente a uma aplicação em Python responsável por **gerar cards completos do Anki a partir de palavras em inglês**.
 A aplicação cria frases com IA, gera áudio em inglês, envia o conteúdo para o Anki via AnkiConnect e ainda permite importar palavras de um banco SQLite do Kindle.
 O projeto foi desenvolvido para estudo, automação e testes, com foco em praticidade no uso diário.
 
