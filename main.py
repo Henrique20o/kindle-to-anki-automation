@@ -82,7 +82,7 @@ def process_words_batch(words):
 
 def main():
 
-    print("=== Anki Automation ===")
+    print("=== Kindle to Anki Automation ===")
     print("Digite uma palavra (ou 'sair' para encerrar)")
     print("Comando extra: 'kindle' para importar de um banco SQLite\n")
 
