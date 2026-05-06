@@ -115,13 +115,3 @@ python main.py
 - A pasta `audio/` recebe arquivos temporários gerados pela aplicação
 
 ---
-
-## GIFs do funcionamento da aplicação
-
-### Fluxo principal
-
-![Fluxo principal](contentReadME/FluxoPrincipal.gif)
-
-### Importação do Kindle
-
-![Importação Kindle](contentReadME/ImportacaoKindle.gif)
