@@ -1,117 +1,67 @@
 # Kindle to Anki Automation
 
-Repositório referente a uma aplicação em Python responsável por **gerar cards completos do Anki a partir de palavras em inglês**.
-A aplicação cria frases com IA, gera áudio em inglês, envia o conteúdo para o Anki via AnkiConnect e ainda permite importar palavras de um banco SQLite do Kindle.
-O projeto foi desenvolvido para estudo, automação e testes, com foco em praticidade no uso diário.
+Cria cards no Anki a partir de palavras em inglês. A aplicação gera frases e traduções com IA, áudio em inglês com gTTS e pode importar palavras de um banco SQLite do Kindle.
 
----
+**Começando do zero?** Siga o [guia completo de instalação e uso](docs/GUIA-DE-INSTALACAO.md), com Anki, AnkiConnect, chave de API, áudio, configuração e primeiro teste.
 
-## Sumário
+## Pré-requisitos
 
-- [Instruções para execução do sistema](#instruções-para-execução-do-sistema)
-- [Tecnologias e ferramentas utilizadas](#tecnologias-e-ferramentas-utilizadas)
-- [Arquitetura do projeto](#arquitetura-do-projeto)
-- [Fluxo de funcionamento](#fluxo-de-funcionamento)
-- [Observações importantes](#observações-importantes)
+- Python 3.13 ou superior.
+- Anki aberto com o complemento **AnkiConnect** instalado.
+- Um tipo de nota no Anki com os campos `Texto` e `Verso Extra`. Os nomes padrão são baralho `Inglês` e tipo de nota `Omissão de Palavras`; ajuste esses nomes no `.env` se usar outros.
+- Uma chave de API de IA. Para outros provedores, a API precisa ser compatível com **OpenAI Chat Completions**.
 
----
-
-## Instruções para execução do sistema
-
-### Pré-requisitos
-
-- Python 3.13 ou superior
-- Anki aberto com o **AnkiConnect** instalado
-- Chave da OpenAI configurada na variável de ambiente `OPENAI_API_KEY`
-
-### Instalação das dependências
-
-```bash
-pip install openai requests gtts
-```
-
-### Configuração da chave da OpenAI
+## Instalação
 
 No PowerShell:
 
 ```powershell
-$env:OPENAI_API_KEY="sua_chave_aqui"
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+pip install -e .
+Copy-Item .env.example .env
 ```
 
-### Execução da aplicação
+Em macOS/Linux, ative o ambiente com `source .venv/bin/activate` e copie o arquivo com `cp .env.example .env`.
 
-```bash
+Edite `.env` e substitua `sua_chave_aqui` pela sua chave. O arquivo `.env` é ignorado pelo Git. Variáveis já definidas no ambiente prevalecem sobre ele. A variável antiga `OPENAI_API_KEY` também é aceita como alternativa a `AI_API_KEY`.
+
+Execute:
+
+```powershell
 python main.py
 ```
 
-### Uso no terminal
+## Configuração
 
-- Digite uma palavra para gerar os cards normalmente
-- Digite `kindle` para importar palavras de um arquivo SQLite do Kindle
-- Digite `sair` para encerrar a aplicação
+| Variável | Padrão | Descrição |
+| --- | --- | --- |
+| `AI_API_KEY` | obrigatória | Chave da API de IA |
+| `AI_MODEL` | `gpt-4o-mini` com OpenAI | Modelo; obrigatório ao configurar outra URL |
+| `AI_BASE_URL` | URL padrão da OpenAI | URL base de outra API compatível com Chat Completions |
+| `CARD_DIFFICULTY` | `equilibrado` | `facil` (A2/B1), `equilibrado` (B1/B2) ou `avancado` (B2/C1) |
+| `CARD_COUNT` | `2` | `1`, `2` ou `3` cards por palavra |
+| `ANKI_DECK` | `Inglês` | Nome do baralho |
+| `ANKI_NOTE_MODEL` | `Omissão de Palavras` | Tipo de nota com campos `Texto` e `Verso Extra` |
+| `ANKI_URL` | `http://localhost:8765` | Endereço do AnkiConnect |
+| `KINDLE_DB_PATH` | vazio | Caminho opcional para o banco Kindle |
 
----
+Para usar outro provedor, configure `AI_API_KEY`, `AI_MODEL` e `AI_BASE_URL` com os valores informados por ele. Esta versão usa a interface **OpenAI Chat Completions**; APIs com formato próprio exigem um adaptador. O gTTS usa um serviço online separado e não usa a chave de IA. Os níveis de dificuldade orientam o prompt, mas não são medidos automaticamente.
 
-## Tecnologias e ferramentas utilizadas
+## Comandos no terminal
 
-- **Linguagem**: Python
-- **IA**: OpenAI API
-- **Texto para fala**: gTTS
-- **Integração com Anki**: AnkiConnect
-- **Banco de dados**: SQLite
-- **Requisições HTTP**: requests
+- Digite uma palavra, como `match(fósforo)`, para criar os cards.
+- Digite `lote` ou `batch` para informar palavras em **uma linha**, separadas por espaço, vírgula, `;` ou `|`.
+- Digite `kindle` para informar o caminho de um arquivo SQLite; Enter usa `KINDLE_DB_PATH`, se configurado.
+- Digite `config` para abrir um menu numérico e alterar a dificuldade ou a quantidade de cards. A escolha vale para a próxima palavra e fica salva no `.env` para as próximas execuções.
+- Digite `sair` para encerrar.
 
----
+Por exemplo: digite `config`, escolha `1) Dificuldade` e depois `3) Avancado`. Para usar apenas um card por palavra, escolha `2) Quantidade de cards` e depois `1`. Enter no submenu cancela a escolha; `3) Voltar` retorna ao prompt de palavras.
 
-## Arquitetura do projeto
+Se `CARD_DIFFICULTY` ou `CARD_COUNT` estiver definida como variável do sistema, ela tem prioridade sobre o `.env`. Nesse caso, o menu informa como liberar a opção antes de alterá-la. O menu não mostra nem edita chaves de API.
 
-### Estrutura principal
+No lote, escreva o significado junto à palavra: `match(fósforo)`. Entradas como `match (fósforo)` são avisadas e ignoradas por inteiro.
 
-- `main.py` - controla o fluxo da aplicação
-- `services/ai_service.py` - gera frases com IA
-- `services/tts_service.py` - cria o áudio em inglês
-- `services/anki_service.py` - envia os cards para o Anki
-- `services/kindle_service.py` - lê palavras do banco SQLite do Kindle
-- `services/word_service.py` - salva as palavras já processadas
+O arquivo local `words.json` registra palavras concluídas para evitar repetição. Os áudios são temporários. Se alguns cards forem criados e outros falharem, a palavra não é marcada como concluída; confira os cards no Anki antes de tentar novamente, pois uma nova tentativa pode criar cards adicionais.
 
-### Fluxo da aplicação
-
-1. O usuário informa uma palavra ou um banco do Kindle
-2. O sistema gera frases em inglês e tradução em português
-3. O áudio da frase é criado automaticamente
-4. O card é enviado para o Anki
-5. A palavra é salva para evitar duplicidade
-
-### Estrutura de dados local
-
-- `words.json` - armazena as palavras já processadas
-- `audio/` - guarda os áudios gerados durante a execução
-
----
-
-## Fluxo de funcionamento
-
-### Geração manual
-
-1. Digite uma palavra no terminal
-2. A IA gera duas frases
-3. O sistema cria o áudio
-4. O card é enviado ao Anki
-
-### Importação do Kindle
-
-1. Digite `kindle`
-2. Informe o caminho do arquivo `.db`
-3. O sistema extrai as palavras válidas
-4. Cada palavra passa pelo mesmo processo de geração de card
-
----
-
-## Observações importantes
-
-- O Anki precisa estar aberto com o AnkiConnect ativo
-- A chave da OpenAI não deve ser compartilhada
-- O arquivo `words.json` evita repetir palavras já processadas
-- A pasta `audio/` recebe arquivos temporários gerados pela aplicação
-
----
+O plano e os critérios de aceite desta refatoração estão em [docs/SDD-refatoracao.md](docs/SDD-refatoracao.md).

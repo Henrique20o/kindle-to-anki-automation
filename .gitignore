@@ -1,6 +1,9 @@
 .idea/
 .vscode/
 .venv/
+.uv-cache/
+.tmp-build/
+*.egg-info/
 __pycache__/
 *.py[cod]
 *.pyo
@@ -10,6 +13,7 @@ __pycache__/
 .ruff_cache/
 .env
 .env.*
+!.env.example
 audio/
 words.json
 vocab/
